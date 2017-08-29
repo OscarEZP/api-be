@@ -31,61 +31,122 @@ router.get('/:date/:rasp', function (req, res) {
   }
 });
 
-router.get('/month/:month/:rasp', function (req, res) {
+router.post('/month', function (req, res) {
     var data = {
-        month: req.params.month,
-        rasp: req.params.rasp
+        month: req.body.month,
+        rasp: req.body.rasp
     };
 
-    if(isNaN(data.rasp)){
+    EstadisticasModel.getStadisticsByRaspAndMonth(data, function (err, response) {
 
-        EstadisticasModel.countByMonthRasp(data, function (err, data) {
-            if(typeof data !== 'undefined'){
-                for(var i=0; i <data.length; i++){
+        if(response.length == 0){
 
-                    EstadisticasModel.postStadisticsByMonth(data[i], function (err, data) {});
+            EstadisticasModel.countByMonthRasp(data, function (err, response) {
+
+                if(response.length > 0){
+
+                    for(var i=0; i <response.length; i++){
+                        EstadisticasModel.postStadisticsByMonth(response[i], function (err, data) {});
+                    }
+                }else{
+                    console.log('No hay registros en la base de datos');
                 }
-            }else{
-                res.json(500, 'Error');
-            }
-        })
-    }
+            });
+
+        }
+    });
 });
 
 
-router.get('/:month', function (req, res) {
+
+
+router.post('/', function (req, res) {
     var data = {
-        month: req.params.month
+        month: req.body.month
     };
 
-    if(isNaN(data.rasp)){
+    EstadisticasModel.countStadisticsByMonth(data, function (err, data) {
+        if(typeof data !== 'undefined'){
+            res.json(data);
+        }else{
+            res.json(500, 'Error');
+        }
+    })
 
-        EstadisticasModel.countStadisticsByMonth(data, function (err, data) {
-            if(typeof data !== 'undefined'){
-                res.json(data);
-            }else{
-                res.json(500, 'Error');
-            }
-        })
-    }
 });
 
-router.get('/fds/:month/', function (req, res) {
+router.post('/week-without-fds', function (req, res) {
     var data = {
-        month: req.params.month
+        month: req.body.month
     };
-    console.log(data);
-    return;
-    if(isNaN(data.rasp)){
 
-        EstadisticasModel.countStadisticsByMonth(data, function (err, data) {
-            if(typeof data !== 'undefined'){
-                res.json(data);
-            }else{
-                res.json(500, 'Error');
-            }
-        })
-    }
+    EstadisticasModel.countStadisticsByMonthWithoutFDS(data, function (err, data) {
+        if(typeof data !== 'undefined'){
+            res.json(data);
+        }else{
+            res.json(500, 'Error');
+        }
+    })
+
+
+});
+
+
+router.post('/week-fds', function (req, res) {
+    var data = {
+        month: req.body.month
+    };
+    EstadisticasModel.countStadisticsByMonthFDS(data, function (err, data) {
+        if(typeof data !== 'undefined'){
+            res.json(data);
+        }else{
+            res.json(500, 'Error');
+        }
+    })
+
+});
+
+router.post('/prom-day', function (req, res) {
+    var data = {
+        month: req.body.month
+    };
+    EstadisticasModel.promDay(data, function (err, data) {
+        if(typeof data !== 'undefined'){
+            res.json(data);
+        }else{
+            res.json(500, 'Error');
+        }
+    })
+
+});
+
+
+router.post('/prom-day-without-fds', function (req, res) {
+    var data = {
+        month: req.body.month
+    };
+    EstadisticasModel.promDayWithoutFDS(data, function (err, data) {
+        if(typeof data !== 'undefined'){
+            res.json(data);
+        }else{
+            res.json(500, 'Error');
+        }
+    })
+
+});
+
+router.post('/prom-day-fds', function (req, res) {
+    var data = {
+        month: req.body.month
+    };
+    EstadisticasModel.promDayFDS(data, function (err, data) {
+        if(typeof data !== 'undefined'){
+            res.json(data);
+        }else{
+            res.json(500, 'Error');
+        }
+    })
+
 });
 
 module.exports = router;
