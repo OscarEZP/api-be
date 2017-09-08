@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var EstadisticasModel = require('../models/estadisticas/Estadisticas');
+var controller = require('../controllers/Estadisticas');
 /* GET home page. */
 router.get('/total', function(req, res, next) {
   EstadisticasModel.getTotal(function (err, data) {
@@ -33,32 +34,25 @@ router.get('/:date/:rasp', function (req, res) {
 
 router.post('/month', function (req, res) {
     var data = {
-        month: req.body.month,
-        rasp: req.body.rasp
+        month: req.body.month
     };
 
     EstadisticasModel.getStadisticsByRaspAndMonth(data, function (err, response) {
 
         if(response.length == 0){
-
-            EstadisticasModel.countByMonthRasp(data, function (err, response) {
-
-                if(response.length > 0){
-
+            EstadisticasModel.getAlldata(data, function (err, result) {
+                if(result.length === 0) {
                     for(var i=0; i <response.length; i++){
                         EstadisticasModel.postStadisticsByMonth(response[i], function (err, data) {});
                     }
+                    res.json({message: 'datos ingresados', status: 200}, 200);
                 }else{
-                    console.log('No hay registros en la base de datos');
+                    res.json({message: 'Se han encotrado los siguientes datos', status: 200, res: result}, 200);
                 }
             });
-
         }
     });
 });
-
-
-
 
 router.post('/', function (req, res) {
     var data = {
@@ -147,6 +141,19 @@ router.post('/prom-day-fds', function (req, res) {
         }
     })
 
+});
+
+router.post('/generateExcel', function (req, res) {
+    var data = {
+        month: req.body.month
+    };
+    EstadisticasModel.getAlldata(data, function (err, data) {
+        if(typeof data !== 'undefined'){
+            res.json(data);
+        }else{
+            res.json(500, 'Error');
+        }
+    })
 });
 
 module.exports = router;
